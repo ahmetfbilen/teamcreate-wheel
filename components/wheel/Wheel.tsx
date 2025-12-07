@@ -7,9 +7,10 @@ interface WheelProps {
     items: string[]
     onSpinEnd: (winner: string) => void
     isSpinning: boolean
+    spinDuration?: number // Duration in milliseconds
 }
 
-export function Wheel({ items, onSpinEnd, isSpinning }: WheelProps) {
+export function Wheel({ items, onSpinEnd, isSpinning, spinDuration = 5000 }: WheelProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [rotation, setRotation] = useState(0)
 
@@ -74,7 +75,7 @@ export function Wheel({ items, onSpinEnd, isSpinning }: WheelProps) {
         if (isSpinning) {
             let speed = 0.4
             let currentRot = rotation
-            const duration = 5000 // 5 seconds
+            const duration = spinDuration
             const startTime = Date.now()
 
             const animate = () => {
@@ -84,45 +85,14 @@ export function Wheel({ items, onSpinEnd, isSpinning }: WheelProps) {
                 if (elapsed < duration) {
                     // Easing out
                     const remaining = duration - elapsed
-                    speed = (remaining / duration) * 0.4 // Slow down
+                    // Adjust speed calculation based on duration to ensure good visual effect
+                    speed = (remaining / duration) * (spinDuration < 2000 ? 0.8 : 0.4)
                     currentRot += speed
                     setRotation(currentRot)
                     requestAnimationFrame(animate)
                 } else {
                     // Stop
                     const normalizedRot = currentRot % (2 * Math.PI)
-                    // Calculate winner
-                    // 0 is at right (3 o'clock). 
-                    // Items are drawn clockwise. 
-                    // Arrow is at Right.
-                    // So we need to see which arc intersects with 0 (2PI)
-                    // Actually Canvas arc starts at 3 o'clock.
-                    // So if we rotate by R, the item at angle 0 is different.
-                    // It's a bit complex math, let's simplify:
-                    // Winner index is based on total rotation?
-
-                    const arc = (2 * Math.PI) / items.length
-                    // reverse rotation to find index?
-                    // The wheel rotates CLOCKWISE (positive angle).
-                    // The pointer is static at 0.
-                    // Item i is at (i*arc + rotation).
-                    // We want i such that (i*arc + rotation) is close to 0 (modulo 2PI).
-                    // Actually, pointer is at 0 (Right).
-                    // We check which segment overlaps 0.
-                    // Start angle of segment i: S = (i*arc + rotation) % 2PI
-                    // End angle of segment i: E = (S + arc)
-                    // We need 0 (or 2PI) to be between S and E.
-
-                    // Simpler: Just pick random winner at start and rotate to it?
-                    // But I implemented physics-ish spin.
-                    // Let's deduce winner from final rotation.
-
-                    // normalizedRot is [0, 2PI]
-                    // segment i starts at i*arc.
-                    // rotated segment i starts at i*arc + rot.
-                    // We want to know which 'i' covers angle 0 (or 2PI).
-                    // Angle 0 relative to wheel = -rotation
-                    // normalize (-rotation) to [0, 2PI]
                     let angleAtPointer = (2 * Math.PI - (currentRot % (2 * Math.PI))) % (2 * Math.PI)
                     const winningIndex = Math.floor(angleAtPointer / ((2 * Math.PI) / items.length))
 
@@ -131,7 +101,7 @@ export function Wheel({ items, onSpinEnd, isSpinning }: WheelProps) {
             }
             requestAnimationFrame(animate)
         }
-    }, [isSpinning, items.length]) // Warning: deps might restart spin if items change mid-spin
+    }, [isSpinning, items.length, spinDuration])
 
     return (
         <div className="relative flex justify-center items-center">

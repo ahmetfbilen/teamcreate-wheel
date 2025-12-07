@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-import { Disc, Trophy, Info, RotateCcw } from "lucide-react"
+import { Disc, Trophy, Zap } from "lucide-react"
 
 export default function WheelPage() {
     const [input, setInput] = useState("")
@@ -16,6 +16,7 @@ export default function WheelPage() {
     const [winner, setWinner] = useState<string | null>(null)
     const [isSpinning, setIsSpinning] = useState(false)
     const [eliminationMode, setEliminationMode] = useState(false)
+    const [fastSpin, setFastSpin] = useState(false)
 
     useEffect(() => {
         const list = input
@@ -81,6 +82,17 @@ export default function WheelPage() {
                                 <Switch checked={eliminationMode} onCheckedChange={setEliminationMode} />
                             </div>
 
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                                <div className="space-y-0.5">
+                                    <label className="text-sm font-medium flex items-center gap-2">
+                                        <Zap className="size-4 text-yellow-400" />
+                                        Fast Spin
+                                    </label>
+                                    <p className="text-xs text-muted-foreground">1 second spin duration</p>
+                                </div>
+                                <Switch checked={fastSpin} onCheckedChange={setFastSpin} />
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Items</label>
                                 <Textarea
@@ -137,8 +149,8 @@ export default function WheelPage() {
                             items={items.length > 0 ? items : ["Add", "Items", "To", "Spin"]}
                             isSpinning={isSpinning}
                             onSpinEnd={onSpinEnd}
+                            spinDuration={fastSpin ? 1000 : 5000}
                         />
-                        {/* Pointer Overlay - handled inside Wheel Canvas technically, but external pointer is also okay. My Canvas has it. */}
                     </div>
                 </div>
             </div>
